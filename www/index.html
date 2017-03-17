@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta http-equiv="Content-Security-Policy" content="default-src *; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+        <script src="components/loader.js"></script>
+        <link rel="stylesheet" href="components/loader.css">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="timeline/jquery.timelineMe.css">
+        <script type="text/javascript" src="timeline/jquery.timelineMe.js"></script>
+    
+        <script>
+            // 0. APIキーの設定と初期化
+            var applicationKey = "YOUR_NCMB_APPLICATION_KEY";
+            var clientKey = "YOUR_NCMB_CLIENT_KEY";
+            var ncmb = new NCMB(applicationKey, clientKey);
+            
+            var items = [];
+            
+            function displayStatusImage() {
+                // 1. ドアステータスの表示
+                // 1.1. DoorDataクラスを検索するオブジェクトを準備
+                var Status = ncmb.DataStore("DoorData");
+                // 1.2. DoorDataクラスの検索条件設定と検索
+                Status.order("createDate", true)
+                      .fetch()
+                      .then(function(result){
+                          // 1.2.1. 検索結果を表示
+                          if(result.status == 1) {
+                                    $("#statusImg").attr("src", "image/closed.png" );
+                                } else {
+                                    $("#statusImg").attr("src", "image/open.png" );
+                                }
+                      })
+                      .catch(function(err){
+                          console.log(err);
+                      });  
+            }
+            
+            function displayTimeline() {
+                // 2. タイムラインの表示
+                // 2.1. DoorDataクラスを検索するオブジェクトを準備
+                var Status = ncmb.DataStore("DoorData"); 
+                // 2.2. DoorDataクラスの検索条件設定と検索
+                Status.order("createDate", true)
+                      .limit(30)
+                      .fetchAll()
+                      .then(function(results){
+                          // 2.2.1. 検索結果を表示
+                          for (var i = 0; i < results.length; i++) {
+                                var object = results[i];
+                                var item = {};
+                                item.type = "smallItem";
+                                item.label = displayDateTime(convertDate(object.createDate)); 
+                                if (object.status == 1) {
+                                    item.shortContent = "閉 CLOSED";
+                                } else {
+                                    item.shortContent = "開 OPENED";
+                                }
+                                item.forcePosition = 'right';
+                                items[i] = item;
+                            }
+                            $('#timeline-container').timelineMe({"items": items});
+                      })
+                      .catch(function(err){
+                          console.log(err);
+                      });
+            }
+            
+            // 3. プッシュ通知の受信設定
+            document.addEventListener("deviceready", function(){
+                // 3.1. デバイストークンを取得してinstallation に登録する
+                window.NCMB.monaca.setDeviceToken(
+                    applicationKey,
+                    clientKey,
+                    "SENDER_ID"  /* Android端末へ配信する場合に設定する送信者ID */
+                );
+            },false);
+            
+            function convertDate(utcString) {
+                var regexp = new RegExp(
+                  "^([0-9]{1,4})-([0-9]{1,2})-([0-9]{1,2})" + "T" +
+                  "([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})" +
+                  "(.([0-9]+))?" + "Z$");
+                var match = regexp.exec(utcString);
+                if (!match) {
+                  return null;
+                }
+                var year = match[1] || 0;
+                var month = (match[2] || 1) - 1;
+                var day = match[3] || 0;
+                var hour = match[4] || 0;
+                var minute = match[5] || 0;
+                var second = match[6] || 0;
+                var milli = match[8] || 0;
+                return new Date(Date.UTC(year, month, day, hour, minute, second, milli));
+            }
+        
+            function displayDateTime(d) {
+                return d.getUTCFullYear()+'-'
+                  + (d.getMonth()+1) +'-'
+                  + d.getDate()+' '
+                  + d.getHours()+':'
+                  + d.getMinutes()+':'
+                  + d.getSeconds();
+            }
+        
+            $(document).ready(function() {
+                displayTimeline();
+                displayStatusImage();
+            });
+        
+            document.addEventListener("resume", onResume, false);
+            function onResume() {
+                displayTimeline();
+                displayStatusImage();
+            }
+    
+        </script>
+    </head>
+    <body>
+        <center>
+            <div class="status-img">
+                現在の状態<br />
+                <img src="" id="statusImg" height="100"> </img>
+            </div>
+            <a href="">更新</a><br />
+            <div style="background-color:#C6D6F0;height: 300px; overflow: auto;" id="timeline-container"></div>
+        </center>
+    </body>
+</html>
