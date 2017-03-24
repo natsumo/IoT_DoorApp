@@ -28,10 +28,10 @@
                       .then(function(result){
                           // 1.2.1. 検索結果を表示
                           if(result.status == 1) {
-                                    $("#statusImg").attr("src", "image/closed.png" );
-                                } else {
-                                    $("#statusImg").attr("src", "image/open.png" );
-                                }
+                              $("#statusImg").attr("src", "image/closed.png" );
+                          } else {
+                              $("#statusImg").attr("src", "image/open.png" );
+                          }
                       })
                       .catch(function(err){
                           console.log(err);
