@@ -49,19 +49,19 @@
                       .then(function(results){
                           // 2.2.1. 検索結果を表示
                           for (var i = 0; i < results.length; i++) {
-                                var object = results[i];
-                                var item = {};
-                                item.type = "smallItem";
-                                item.label = displayDateTime(convertDate(object.createDate)); 
-                                if (object.status == 1) {
-                                    item.shortContent = "閉 CLOSED";
-                                } else {
-                                    item.shortContent = "開 OPENED";
-                                }
-                                item.forcePosition = 'right';
-                                items[i] = item;
-                            }
-                            $('#timeline-container').timelineMe({"items": items});
+                              var object = results[i];
+                              var item = {};
+                              item.type = "smallItem";
+                              item.label = displayDateTime(convertDate(object.createDate)); 
+                              if (object.status == 1) {
+                                  item.shortContent = "閉 CLOSED";
+                              } else {
+                                  item.shortContent = "開 OPENED";
+                              }
+                              item.forcePosition = 'right';
+                              items[i] = item;
+                          }
+                          $('#timeline-container').timelineMe({"items": items});
                       })
                       .catch(function(err){
                           console.log(err);
